@@ -6,4 +6,24 @@ class Numeric
     else self
     end
   end
+
+  def days
+    24 * self.hours
+  end
+  alias :day :days
+
+  def hours
+    60 * self.minutes
+  end
+  alias :hour :hours
+
+  def minutes
+    60 * self.seconds
+  end
+  alias :minute :minutes
+
+  def seconds
+    self
+  end
+  alias :second :seconds
 end
