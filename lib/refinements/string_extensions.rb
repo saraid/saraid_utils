@@ -4,4 +4,8 @@ class String
   def copy
     IO.popen('pbcopy', 'w') { |f| f << self }
   end
+
+  def to_sql
+    "'#{self}'"
+  end
 end

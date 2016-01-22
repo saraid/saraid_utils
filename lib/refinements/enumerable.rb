@@ -44,4 +44,8 @@ module Enumerable
     else [0...-1].join(', ') + " and #{last}"
     end
   end
+
+  def select_by(&block)
+    select { |item| block.call(item) }
+  end
 end
