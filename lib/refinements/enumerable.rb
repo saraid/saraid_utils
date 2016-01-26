@@ -15,7 +15,12 @@ module Enumerable
       if item.respond_to? sym
         item.send(sym, *args)
       elsif item.respond_to? :[]
-        item[sym]
+        if args.empty?
+          item[sym]
+        else
+          syms = args.unshift(sym)
+          Hash[syms.zip(syms.collect { |prop| item[prop] })]
+        end
       end
     end
   end
@@ -35,6 +40,11 @@ module Enumerable
   def sum
     inject(0) { |sum, n| sum + n }
   end
+
+  def average
+    sum.to_f/size
+  end
+  alias :avg :average
 
   def to_sentence
     case size
