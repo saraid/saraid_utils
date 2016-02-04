@@ -7,4 +7,8 @@ module Kernel
     `pbpaste`.chop
   end
   alias :paste :pbpaste
+
+  def open_url(url)
+    `open #{url.to_s}`
+  end
 end
