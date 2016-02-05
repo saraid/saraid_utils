@@ -1,16 +1,12 @@
 class File
-  def self.[](path, mode = 'r')
-    file_handle = nil
-    [
+  def self.guess(path, mode = 'r')
+    filename = [
       lambda { |path| path },
       lambda { |path| File.expand_path(path) },
       lambda { |path| File.join(Dir.pwd, path) }
-    ].each do |strategy|
-      break if file_handle
-      filename = strategy.call(path)
-      file_handle = File.open(filename, mode) if File.exists? filename
-    end
-    file_handle
+    ].collect { |strategy| strategy.call(path) }.
+      detect(&File.method(:exists?))
+    File.open(filename, mode) if filename
   end
 end
 
