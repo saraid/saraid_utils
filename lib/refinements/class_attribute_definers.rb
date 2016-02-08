@@ -1,4 +1,4 @@
-class Class
+module ClassAttributeDefiners
   def class_attribute(symbol)
     self.class.instance_eval do
       define_method "#{symbol}?".to_sym do
