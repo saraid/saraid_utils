@@ -11,4 +11,10 @@ module Kernel
   def open_url(url)
     `open #{url.to_s}`
   end
+
+  def benchmark
+    time_start = Time.now
+    yield
+    puts "#{Time.now - time_start} seconds."
+  end
 end
