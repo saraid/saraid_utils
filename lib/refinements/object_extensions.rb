@@ -4,6 +4,8 @@ class Object
   end
 
   def open_url
-    `open #{to_url || to_uri}` if respond_to?(:to_url) || respond_to?(:to_uri)
+    url = to_url if respond_to? :to_url
+    url ||= to_uri if respond_to? :to_uri
+    `open #{url}`
   end
 end

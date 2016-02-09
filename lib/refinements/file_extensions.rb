@@ -9,4 +9,3 @@ class File
     File.open(filename, mode) if filename
   end
 end
-

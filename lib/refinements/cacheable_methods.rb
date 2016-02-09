@@ -1,18 +1,18 @@
 module CacheableMethods
   def cache(options = {}, &block)
     timeout = options[:timeout] ||= 5.minutes
-    calling_method = options[:calling_method] ||= (caller.first =~ /`([^']*)'/ && $1).to_sym
+    cache_key = options[:cache_key] ||= (caller.first =~ /`([^']*)'/ && $1).to_sym
 
     @cached_values ||= {}
     not_cached = [
-      !@cached_values[calling_method],
-      @cached_values.fetch(calling_method, {})[:timeout].try(:<, Time.now)
+      !@cached_values[cache_key],
+      @cached_values.fetch(cache_key, {})[:timeout].try(:<, Time.now)
     ].any?
 
     if not_cached
-      @cached_values[calling_method] = { value: yield, timeout: Time.now + timeout }
+      @cached_values[cache_key] = { value: yield, timeout: Time.now + timeout }
     end
-    @cached_values[calling_method][:value]
+    @cached_values[cache_key][:value]
   end
 
   def cached?(method)
