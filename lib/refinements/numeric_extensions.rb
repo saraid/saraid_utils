@@ -26,4 +26,12 @@ class Numeric
     self
   end
   alias :second :seconds
+
+  # Expecting a Time or Date or DateTime parameter
+  def since(time)
+    case time
+    when Date, Time, DateTime then time + self
+    else raise ArgumentError.new('#since takes a Time-like')
+    end
+  end
 end

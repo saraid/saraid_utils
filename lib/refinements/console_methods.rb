@@ -1,4 +1,4 @@
-module Kernel
+module ConsoleMethods
   def pbcopy(string)
     string.to_s.copy
   end
