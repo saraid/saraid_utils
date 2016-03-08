@@ -6,6 +6,12 @@ class Object
   end
 end
 
+class Numeric
+  def to_sql
+    "#{self}"
+  end
+end
+
 # nil is represented as NULL in SQL, without single quotes.
 class NilClass
   def to_sql
