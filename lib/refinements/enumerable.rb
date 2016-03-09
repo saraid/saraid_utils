@@ -58,4 +58,12 @@ module Enumerable
   def select_by(&block)
     select { |item| block.call(item) }
   end
+
+  def one?
+    size == 1
+  end
+
+  def many?
+    size > 1
+  end
 end
