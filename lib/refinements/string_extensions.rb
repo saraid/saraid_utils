@@ -1,3 +1,5 @@
+# encoding: UTF-8
+
 class String
   # Useful only on a Mac.
   # Copies to your clipboard.
