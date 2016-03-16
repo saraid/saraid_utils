@@ -10,18 +10,40 @@ module Enumerable
       keys
   end
 
-  def pluck(sym, *args)
-    collect do |item|
-      if item.respond_to? sym
-        item.send(sym, *args)
-      elsif item.respond_to? :[]
-        if args.empty?
-          item[sym]
-        else
-          syms = args.unshift(sym)
-          Hash[syms.zip(syms.collect { |prop| item[prop] })]
-        end
+  def per_item_query(item, property, *args)
+    if item.respond_to? property
+      item.send(property, *args)
+    elsif item.respond_to? :[]
+      if args.empty?
+        item[property]
+      else
+        properties = args.unshift(property)
+        Hash[properties.zip(properties.collect { |prop| item[prop] })]
       end
+    end
+  end
+  private :per_item_query
+
+  def pluck(prop, *args)
+    collect do |item|
+      per_item_query(item, prop, *args)
+    end
+  end
+
+  [
+    :select, :filter, :find_all, :grep,
+    :reject, :find, :detect, :all?, :any?
+  ].each do |enumerable_method|
+    is_predicate = enumerable_method.to_s =~ /\?$/
+    method_name = enumerable_method.to_s.sub('?', '').+('_by')
+    method_name += '?' if is_predicate
+
+    define_method method_name.to_sym do |subquery, operator, value|
+      comparator = lambda do |item|
+        query_value = per_item_query(item, subquery)
+        query_value.send(operator, value)
+      end
+      send(enumerable_method, &comparator)
     end
   end
 
@@ -53,10 +75,6 @@ module Enumerable
     when 2 then join(' and ')
     else [0...-1].join(', ') + " and #{last}"
     end
-  end
-
-  def select_by(&block)
-    select { |item| block.call(item) }
   end
 
   def one?
