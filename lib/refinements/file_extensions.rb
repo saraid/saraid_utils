@@ -1,12 +1,12 @@
 class File
-  def self.guess(path, mode = 'r')
+  def self.guess(path, mode = 'r', &block)
     filename = [
       lambda { |path| path },
       lambda { |path| File.expand_path(path) },
       lambda { |path| File.join(Dir.pwd, path) }
     ].collect { |strategy| strategy.call(path) }.
       detect(&File.method(:exists?))
-    File.open(filename, mode) if filename
+    File.open(filename, mode, &block) if filename
   end
 
   # This should really be a unit test.
@@ -14,7 +14,7 @@ class File
   # 'foo.2' => 'foo.3'
   # 'foo.csv' => 'foo.2.csv'
   # 'foo.2.csv' => 'foo.3.csv'
-  def self.increment(path, mode = 'w')
+  def self.increment(path, mode = 'w', &block)
     while File.exists? path
       parts = path.split('.')
       if /\d+/ =~ parts[-1]
@@ -29,6 +29,6 @@ class File
 
       path = parts.join('.')
     end
-    File.open(path, mode)
+    File.open(path, mode, &block)
   end
 end
