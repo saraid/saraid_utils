@@ -47,6 +47,17 @@ module Enumerable
     end
   end
 
+  def search(value)
+    comparator = lambda do |string|
+      case value
+      when Regexp then string.match value
+      when String then string.include? value
+      else string == value
+      end
+    end
+    select(&comparator)
+  end
+
   def select_by_class(klass)
     select { |obj| klass === obj }
   end
