@@ -88,11 +88,15 @@ module Enumerable
     end
   end
 
-  def one?
+  def single?
     size == 1
   end
 
   def many?
     size > 1
+  end
+
+  def first_if_single
+    first if single?
   end
 end
