@@ -7,6 +7,14 @@ class String
     IO.popen('pbcopy', 'w') { |f| f << self }
   end
 
+  def lstrip!
+    sub! /^[\s ]+/, ''
+  end
+
+  def rstrip!
+    sub! /[\s ]+$/, ''
+  end
+
   def only_whitespace?
     /^[\s ]+$/.match(self).to_bool
   end
