@@ -34,4 +34,10 @@ class Numeric
     else raise ArgumentError.new('#since takes a Time-like')
     end
   end
+
+  def as_percent_of(total)
+    percent = self.to_f / total * 100
+    percent = 0 if percent.nan?
+    percent.to_f
+  end
 end
