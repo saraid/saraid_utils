@@ -99,4 +99,28 @@ module Enumerable
   def first_if_single
     first if single?
   end
+
+  def map_then_puts(&block)
+    require 'csv'
+    results = map(&block)
+    puts results.map(&:to_csv).join
+    results
+  end
+
+  def count_by(&block)
+    group_by(&block).each_with_object({}) do |(key, value), memo|
+      memo[key] = value.size
+    end
+  end
+
+  # [ 192, 168, 0, 1..2 ] => [ '192.168.0.1', '192.168.0.2' ]
+  def explode_by_combination(join_with = '.')
+    parts = map { |part| part.respond_to?(:to_a) ? part.to_a.map(&:to_s) : [ part.to_s ] }
+    combinations = parts.shift.map { |part| [ part ] }
+    parts.inject(combinations) do |combos, part_values|
+      combos.map { |combo| part_values.map { |part| combo + [ part ] } }.flatten(1)
+    end.map do |combo|
+      combo.join(join_with)
+    end
+  end
 end
