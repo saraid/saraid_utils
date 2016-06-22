@@ -100,10 +100,10 @@ module Enumerable
     first if single?
   end
 
-  def map_then_puts(&block)
+  def map_then_puts(quiet = false, &block)
     require 'csv'
     results = map(&block)
-    puts results.map(&:to_csv).join
+    puts results.map(&:to_csv).join unless quiet
     results
   end
 
