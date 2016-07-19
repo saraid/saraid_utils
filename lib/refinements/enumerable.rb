@@ -48,13 +48,12 @@ module Enumerable
   end
 
   def search(value)
-    comparator = lambda do |string|
+    comparator =
       case value
-      when Regexp then string.match value
-      when String then string.include? value
-      else string == value
+      when Regexp then lambda { |string| string.match value }
+      when String then lambda { |string| string.include? value }
+      else lambda { |string| string == value }
       end
-    end
     select(&comparator)
   end
 
