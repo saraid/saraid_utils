@@ -31,4 +31,8 @@ class File
     end
     File.open(path, mode, &block)
   end
+
+  def self.read_json(path)
+    JSON.parse(File.read(path))
+  end
 end
