@@ -122,4 +122,9 @@ module Enumerable
       combo.join(join_with)
     end
   end
+
+  def to_range(&block)
+    sorted = block_given? ? self.sort_by(&block) : self.sort
+    Range.new(sorted.first, sorted.last)
+  end
 end

@@ -45,8 +45,8 @@ module SaraidSql
       return nil if data.empty?
       value_column_name = options.fetch(:value_column_name)
       key_column_name = options.fetch(:key_column_name)
-      value_column_value = options.fetch(:value_column_value)
-      key_column_value = options.fetch(:key_column_value)
+      value_column_value = options.fetch(:value_column_value, proc { |datum| datum.send(value_column_name.to_sym) })
+      key_column_value = options.fetch(:key_column_value, proc { |datum| datum.send(key_column_name.to_sym) })
       comment = options.fetch(:comment, proc {})
       cases = data.map do |datum|
         [ "WHEN #{key_column_value.call(datum).to_sql}",
@@ -59,7 +59,7 @@ module SaraidSql
            SET #{value_column_name} = CASE #{key_column_name}#{cases.join($/)}
              ELSE #{value_column_name}
              END
-         WHERE #{key_column_name} IN (#{data.map(&key_column_value).join(', ')});
+         WHERE #{key_column_name} IN (#{data.map(&key_column_value).map(&:to_sql).join(', ')});
       SQL
     end
   end

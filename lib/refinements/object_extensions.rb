@@ -16,4 +16,8 @@ class Object
       nil
     end
   end
+
+  def identity
+    self
+  end
 end
