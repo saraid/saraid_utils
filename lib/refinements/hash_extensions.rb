@@ -18,4 +18,12 @@ class Hash
   def expand(&block)
     Hash[keys.zip(values.map(&block))]
   end
+
+  def map_keys(&block)
+    keys.map(&block).zip(values).to_h
+  end
+
+  def map_values(&block)
+    keys.zip(values.map(&block)).to_h
+  end
 end
