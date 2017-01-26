@@ -127,4 +127,10 @@ module Enumerable
     sorted = block_given? ? self.sort_by(&block) : self.sort
     Range.new(sorted.first, sorted.last)
   end
+
+  def map_to_hash(&block)
+    map do |item|
+      Hash.new.tap { |instance| instance.instance_exec(item, &block) }
+    end
+  end
 end
