@@ -1,6 +1,6 @@
 class Object
   def to_bool
-    !!self
+    self ? true : false
   end
 
   def open_url
