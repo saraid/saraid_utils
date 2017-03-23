@@ -17,7 +17,8 @@ class Object
     end
   end
 
-  def identity
-    self
+  def if(condition, or_else:)
+    #condition.call(self) ? self : or_else
+    self.ensure(&condition) || or_else
   end
 end
