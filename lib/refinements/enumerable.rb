@@ -99,6 +99,11 @@ module Enumerable
     first if single?
   end
 
+  def unwrap
+    raise RangeError.new("Expected #{self.class} to have only one element, but it has #{size} elements.") if size > 1
+    first
+  end
+
   def map_then_puts(quiet = false, &block)
     require 'csv'
     results = map(&block)

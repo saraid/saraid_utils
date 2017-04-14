@@ -15,6 +15,14 @@ class Hash
       store(to_bury.last, value)
   end
 
+  def only(*args)
+    select { |k, _| args.include? k }
+  end
+
+  def except(*args)
+    reject { |k, _| args.include? k }
+  end
+
   def expand(&block)
     Hash[keys.zip(values.map(&block))]
   end

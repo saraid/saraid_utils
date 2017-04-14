@@ -9,6 +9,10 @@ module Tryable
   def try_any?(*methods)
     methods.any?(&method(:try))
   end
+
+  def attempt(*args, &block)
+    try(*args, &block) || self
+  end
 end
 
 class Object
