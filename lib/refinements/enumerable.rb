@@ -111,9 +111,15 @@ module Enumerable
     results
   end
 
-  def count_by(&block)
-    group_by(&block).each_with_object({}) do |(key, value), memo|
-      memo[key] = value.size
+  if Hash.method_defined?(:map_values)
+    def count_by(&block)
+      group_by(&block).map_values(&:size)
+    end
+  else
+    def count_by(&block)
+      group_by(&block).each_with_object({}) do |(key, value), memo|
+        memo[key] = value.size
+      end
     end
   end
 
