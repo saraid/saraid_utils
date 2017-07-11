@@ -40,15 +40,16 @@ class Hash
   # => { "foo.bar" => 1 }
   #
   # This overrides Enumerable#flatten, which may or may not be a bad thing.
+  # Also see: https://stackoverflow.com/questions/9647997/converting-a-nested-hash-into-a-flat-hash
   def flatten
     recursor = lambda do |layer, cursor, path_collection = {}|
       layer.each do |path_part, new_layer|
         path_parts = cursor + [path_part]
         value = dig(*path_parts)
-        if value.is_a?(Hash)
+        if value.respond_to?(:dig)
           recursor.call(new_layer, path_parts, path_collection)
         else
-          path_collection[path_parts.dup] = value unless value.is_a?(Hash)
+          path_collection[path_parts.dup] = value
         end
       end
       path_collection
