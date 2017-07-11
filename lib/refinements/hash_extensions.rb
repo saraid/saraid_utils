@@ -34,4 +34,20 @@ class Hash
   def map_values(&block)
     keys.zip(values.map(&block)).to_h
   end
+
+  def flatten
+    recursor = lambda do |layer, cursor, path_collection = {}|
+      layer.each do |path_part, new_layer|
+        path_parts = cursor + [path_part]
+        value = dig(*path_parts)
+        if value.is_a?(Hash)
+          recursor.call(new_layer, path_parts, path_collection)
+        else
+          path_collection[path_parts.dup] = value unless value.is_a?(Hash)
+        end
+      end
+      path_collection
+    end
+    recursor.call(self, [])
+  end
 end
