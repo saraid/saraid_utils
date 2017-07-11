@@ -35,6 +35,11 @@ class Hash
     keys.zip(values.map(&block)).to_h
   end
 
+  # Suggested usage:
+  # { foo: { bar: 1 }}.flatten.map_keys(&:join.call('.'))
+  # => { "foo.bar" => 1 }
+  #
+  # This overrides Enumerable#flatten, which may or may not be a bad thing.
   def flatten
     recursor = lambda do |layer, cursor, path_collection = {}|
       layer.each do |path_part, new_layer|
