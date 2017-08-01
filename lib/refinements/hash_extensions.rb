@@ -1,10 +1,4 @@
 class Hash
-  def deep_fetch(*args)
-    found = self[args.shift]
-    found = found.deep_fetch(*args) if found.respond_to?(:deep_fetch) && !args.empty?
-    found
-  end
-
   def count_values
     Hash[keys.zip(values.map(&:size))]
   end
@@ -17,12 +11,17 @@ class Hash
 
   def domino(*tries, default: nil)
     begin
-      fetch(tries.shift)
+      case the_try = tries.shift
+        when Array then dig(*the_try)
+        else fetch(the_try)
+      end
     rescue KeyError
       retry unless tries.empty?
       default
     end
   end
+  alias seq_fetch domino
+  alias sequential_fetch domino
 
   def only(*args)
     select { |k, _| args.include? k }
