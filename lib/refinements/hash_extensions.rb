@@ -15,6 +15,15 @@ class Hash
       store(to_bury.last, value)
   end
 
+  def domino(*tries, default: nil)
+    begin
+      fetch(tries.shift)
+    rescue KeyError
+      retry unless tries.empty?
+      default
+    end
+  end
+
   def only(*args)
     select { |k, _| args.include? k }
   end
@@ -25,6 +34,16 @@ class Hash
 
   def expand(&block)
     Hash[keys.zip(values.map(&block))]
+  end
+
+  if Object.new.respond_to?(:blank?)
+    def compact
+      reject { |_, v| v.blank? }
+    end
+  else
+    def compact
+      reject { |_, v| v.nil? }
+    end
   end
 
   def map_keys(&block)

@@ -22,4 +22,26 @@ class String
   def only_whitespace_or_empty?
     empty? || only_whitespace?
   end
+
+  def levenshtein_distance(other)
+    m, n = self.length, other.length
+    return m if n == 0
+    return n if m == 0
+
+    # Create our distance matrix
+    d = Array.new(m+1) {Array.new(n+1)}
+    0.upto(m) { |i| d[i][0] = i }
+    0.upto(n) { |j| d[0][j] = j }
+
+    1.upto(n) do |j|
+      1.upto(m) do |i|
+        d[i][j] = self[i-1] == other[j-1] ? d[i-1][j-1] : [d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+1,].min
+      end
+    end
+    d[m][n]
+  end
+
+  def closest_match(array)
+    array.min_by(&method(:levenshtein_distance))
+  end
 end
