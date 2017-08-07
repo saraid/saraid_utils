@@ -9,7 +9,7 @@ class Hash
       store(to_bury.last, value)
   end
 
-  def domino(*tries, default: nil)
+  def rummage(*tries, default: nil)
     begin
       case the_try = tries.shift
         when Array then dig(*the_try)
@@ -20,8 +20,8 @@ class Hash
       default
     end
   end
-  alias seq_fetch domino
-  alias sequential_fetch domino
+  alias seq_fetch rummage
+  alias sequential_fetch rummage
 
   def only(*args)
     select { |k, _| args.include? k }
