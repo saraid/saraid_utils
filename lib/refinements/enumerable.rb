@@ -95,6 +95,10 @@ module Enumerable
     size > 1
   end
 
+  def populated?
+    !empty?
+  end
+
   def first_if_single
     first if single?
   end
