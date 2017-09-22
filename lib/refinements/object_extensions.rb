@@ -2,6 +2,9 @@ class Object
   def to_bool
     self ? true : false
   end
+  alias :true? :to_bool
+
+  def false?; !to_bool; end
 
   def open_url
     url = to_url if respond_to? :to_url
