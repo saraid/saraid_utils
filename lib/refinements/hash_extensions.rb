@@ -85,8 +85,8 @@ class Hash
         end
       else
         if case search
-            when String then value.include?(search)
-            when Regexp then value.match(search)
+            when String then value.respond_to?(:include?) && value.include?(search)
+            when Regexp then value.respond_to?(:match) && value.match(search)
             else value == search
           end
           results << [key]
