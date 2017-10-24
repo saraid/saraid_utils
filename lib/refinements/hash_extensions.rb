@@ -74,4 +74,25 @@ class Hash
     end
     recursor.call(self, [])
   end
+
+  def paths_for_value(search)
+    results = []
+    each do |key, value|
+      case value
+      when Hash
+        value.paths_for_value(search).each do |subpath|
+          results << subpath.unshift(key)
+        end
+      else
+        if case search
+            when String then value.include?(search)
+            when Regexp then value.match(search)
+            else value == search
+          end
+          results << [key]
+        end
+      end
+    end
+    results
+  end
 end
