@@ -44,4 +44,10 @@ class String
   def closest_match(array)
     array.min_by(&method(:levenshtein_distance))
   end
+
+  def wrap(before, after = nil)
+    prepend(before)
+    self << (after || before)
+  end
+  alias :inpend :wrap
 end
