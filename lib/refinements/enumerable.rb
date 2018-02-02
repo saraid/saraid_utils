@@ -103,9 +103,13 @@ module Enumerable
     first if single?
   end
 
-  def unwrap
-    raise RangeError.new("Expected #{self.class} to have only one element, but it has #{size} elements.") if size > 1
-    first
+  def unwrap(&block)
+    if block_given? && respond_to?(:yield_self)
+      size > 1 ? yield_self(&block) : first
+    else
+      raise RangeError.new("Expected #{self.class} to have only one element, but it has #{size} elements.") if size > 1
+      first
+    end
   end
 
   def map_then_puts(quiet = false, &block)
