@@ -95,6 +95,15 @@ module Enumerable
     size > 1
   end
 
+  def both?(&block)
+    raise RangeError.new("Expected #{self.class} to have exactly two elements, but it has #{size} elements.") if size != 2
+    all?(&block)
+  end
+
+  def neither?(&block)
+    !both?(&block)
+  end
+
   def populated?
     !empty?
   end
