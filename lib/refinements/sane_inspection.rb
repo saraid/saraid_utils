@@ -19,14 +19,18 @@ module SaneInspection
   def self.saneify_inspect!(mod)
     mod.class_eval do
       def inspect
-        properties = if respond_to?(:inspectable_attributes)
-          inspectable_attributes.
+        postamble = ''
+        if respond_to?(:inspectable_attributes)
+          postamble << inspectable_attributes.
             map { |attr| "@#{attr}=#{instance_variable_get(:"@#{attr}").inspect}" }.
             join(', ').
             prepend(' ')
-        else ''
         end
-        "#<#{self.class}:#{'0x%x' % (object_id << 1)}#{properties}>"
+        if respond_to?(:custom_inspection)
+          postamble << custom_inspection.prepend(' ')
+        end
+
+        "#<#{self.class}:#{'0x%x' % (object_id << 1)}#{postamble}>"
       end
     end
   end
