@@ -1,9 +1,3 @@
-class Object
-  def yield_self
-    yield self
-  end
-end
-
 class Regexp
   def to_class(superclass = Object, &block)
     new_class = Class.new(superclass)
