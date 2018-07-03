@@ -13,8 +13,8 @@ module ConsoleMethods
   end
 
   def benchmark
-    time_start = Time.now
+    time_start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     yield
-    puts "#{Time.now - time_start} seconds."
+    puts "#{Process.clock_gettime(Process::CLOCK_MONOTONIC) - time_start} seconds."
   end
 end
