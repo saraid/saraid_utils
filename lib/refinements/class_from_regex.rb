@@ -28,16 +28,12 @@ class Regexp
 
         regex.names.each do |name|
           capture = match[name]
-          if self.class.processors.key?(name.to_sym)
-            processor = self.class.processors[name.to_sym]
-
-            capture = 
-              if processor.respond_to?(:call)
-                processor.call(capture)
-              else
-                processor.bind(capture).call
-              end
-          end
+          processor = self.class.processors[name.to_sym]
+          capture = case processor
+                    when Proc then processor.call(capture)
+                    when UnboundMethod then processor.bind(capture).call
+                    else capture
+                    end
           instance_variable_set(:"@#{name}", capture)
         end
       end
