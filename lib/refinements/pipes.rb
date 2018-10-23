@@ -15,8 +15,8 @@ module Pipes
     if condition_met then yield else chain_method end
   end
 
-  def unless(condition)
-    self.if(!condition_interpreter.call(condition))
+  def unless(condition, &block)
+    self.if(!condition_interpreter.call(condition), &block)
   end
 
   def if_nil(&block)
