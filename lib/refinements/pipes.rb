@@ -10,18 +10,17 @@ module Pipes
     end
   end
 
-  def if(condition, or_else: nil)
-    or_else = chain_method if or_else.nil?
+  def if(condition)
     condition_met = condition_interpreter.call(condition)
-    if condition_met then yield else or_else end
+    if condition_met then yield else chain_method end
   end
 
   def unless(condition)
     self.if(!condition_interpreter.call(condition))
   end
 
-  def if_nil(or_else: nil, &block)
-    self.if(:nil?, or_else: or_else, &block)
+  def if_nil(&block)
+    self.if(:nil?, &block)
   end
 
   def nil_if(&block)
