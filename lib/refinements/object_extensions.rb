@@ -19,13 +19,4 @@ class Object
       nil
     end
   end
-
-  def if(condition, or_else:)
-    #condition.call(self) ? self : or_else
-    self.ensure(&condition) || or_else
-  end
-
-  def nil_if(&block)
-    block.call(self) ? nil : self
-  end
 end
