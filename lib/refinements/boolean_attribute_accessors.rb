@@ -5,7 +5,7 @@ module BooleanAttributeAccessors
       when Hash
         name.each do |positive, negative|
           boolean_attribute_reader(positive)
-          boolean_attribute_reader(negative, positive)
+          negated_boolean_attribute_reader(negative, positive)
         end
       else
         boolean_attribute_reader(name)
@@ -67,4 +67,21 @@ module DemonstratingSaraidUtils
     [:valid?, :invalid?, :tbd?, :initialized?, :done?, :ready?, :pending?, :awesome?, :terrible?, :fun?, :boring?].
       each { |m| instance_methods.include?(m) || (raise "#{m} is not defined and should be.") }
   end
+
+  test = TestFoo.new
+  test.valid!
+  test.ready!
+  test.awesome!
+  test.boring!
+
+  { :valid? => true,
+    :invalid? => false,
+    :ready? => true,
+    :pending? => false,
+    :awesome? => true,
+    :terrible? => false,
+    :fun? => false,
+    :boring? => true
+  }.each { |m, v| (test.send(m) == v) || (raise "#{m} is showing #{test.send(m)} rather than #{v}")}
+
 end
