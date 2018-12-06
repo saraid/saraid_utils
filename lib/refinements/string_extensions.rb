@@ -50,4 +50,9 @@ class String
     self << (after || before)
   end
   alias :inpend :wrap
+
+  def to_pathname
+    require 'pathname'
+    Pathname.new(File.expand_path(self))
+  end
 end
