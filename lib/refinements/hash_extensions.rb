@@ -95,4 +95,8 @@ class Hash
     end
     results
   end
+
+  def fetch_values_at(*fetch_keys, default)
+    fetch_keys.map { |key| fetch(key, default) }
+  end
 end

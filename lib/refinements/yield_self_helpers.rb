@@ -1,12 +1,16 @@
 module YieldSelfHelpers
+  def into(method_name, on: nil)
+    yield_self(&(on.respond_to?(method_name) ? on.method(method_name) : method_name))
+  end
+
   def parse_as_json
     require 'json'
-    yield_self(&JSON.method(:parse))
+    into(:parse, on: JSON)
   end
 
   def parse_as_uri
     require 'uri'
-    yield_self(&URI.method(:parse))
+    into(:parse, on: URI)
   end
 
   def as_rest_resource
@@ -18,11 +22,6 @@ module YieldSelfHelpers
 
   def unwrap_from_array
     is_a?(Array) ? unwrap : self
-  end
-
-  def yield_method(receiver, method_name)
-    raise ArgumentError, "#{receiver} does not respond to #{method_name}."  unless receiver.respond_to?(method_name)
-    yield_self(&receiver.method(method_name))
   end
 end
 

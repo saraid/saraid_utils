@@ -128,7 +128,11 @@ module Enumerable
     results
   end
 
-  if Hash.method_defined?(:map_values)
+  if Hash.method_defined?(:transform_values)
+    def count_by(&block)
+      group_by(&block).transform_values(&:size)
+    end
+  elsif Hash.method_defined?(:map_values)
     def count_by(&block)
       group_by(&block).map_values(&:size)
     end
