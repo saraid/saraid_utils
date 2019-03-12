@@ -113,7 +113,7 @@ if ENV.method(:fetch).source_location.nil?
     end
 
     private def normalize_key(key)
-      key.to_s.upcase.gsub(/[^A-Z0-9]/, '_').squeeze('_')
+      key.to_s.upcase.gsub(/[^A-Z0-9]+/, '_')
     end
   end
 
