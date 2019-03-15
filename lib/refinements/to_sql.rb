@@ -70,7 +70,7 @@ begin
 rescue LoadError
 end
 
-if defined?(PostgresPR)
+if defined?(PostgresPR) && !defined?(PostgresPRExtensions)
   module PostgresPRExtensions
     class PostgresError < StandardError
       def self.parse(exception)
