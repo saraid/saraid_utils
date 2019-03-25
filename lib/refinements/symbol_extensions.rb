@@ -4,4 +4,8 @@ class Symbol
   end
   alias as_method call
   alias to_method call
+
+  def ===(other)
+    self == other || other.respond_to?(self) && other.send(self)
+  end
 end
