@@ -92,15 +92,13 @@ module Refinements
 
     module Ruby27
       unless ForwardCompatibility.instance_method_defined?(Enumerable, :tally)
-        refine Array do
+        refine Enumerator do
+          def filter_map(&block)
+            select(&block).map(&block)
+          end
+
           def tally
             group_by(&:itself).transform_values(&:size)
-          end
-        end
-
-        refine Hash do
-          def tally
-            to_a.tally
           end
         end
       end

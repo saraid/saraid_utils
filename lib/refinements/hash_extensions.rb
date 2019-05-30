@@ -64,7 +64,7 @@ class Hash
       layer.each do |path_part, new_layer|
         path_parts = cursor + [path_part]
         value = dig(*path_parts)
-        if value.respond_to?(:dig)
+        if value.respond_to?(:key?)
           recursor.call(new_layer, path_parts, path_collection)
         else
           path_collection[path_parts.dup] = value
