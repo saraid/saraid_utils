@@ -1,14 +1,5 @@
 module URI
-  def self.parse_without_scheme(unparsed, scheme:)
-    case scheme
-    when String, Symbol then scheme
-    when ->(x){ x < URI::Generic } then URI.scheme_list.invert.fetch(scheme, '').downcase
-    else raise ArgumentError, 'passed scheme not understood'
-    end
-      .yield_self { |deduced_scheme| URI.parse("#{deduced_scheme}://#{unparsed}") }
-  end
-
-  class HTTP
+  class Generic
     def self.parse(unparsed)
       scheme, *parts = URI.split(unparsed)
 
