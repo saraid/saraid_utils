@@ -7,6 +7,10 @@ class String
     IO.popen('pbcopy', 'w') { |f| f << self }
   end
 
+  def >>(num)
+    (' ' * num) + self
+  end
+
   def lstrip!
     sub! /^[\s ]+/, ''
   end
