@@ -53,6 +53,10 @@ class Hash
     keys.zip(values.map(&block)).to_h
   end
 
+  def transform(&block)
+    keys.zip(map(&block)).to_h
+  end
+
   # Suggested usage:
   # { foo: { bar: 1 }}.flatten.map_keys(&:join.call('.'))
   # => { "foo.bar" => 1 }
