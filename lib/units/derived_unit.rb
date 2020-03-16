@@ -1,6 +1,7 @@
 module Units
   class DerivedUnit < Unit
     def self.for(operator, *operands)
+      return operands.first if operator == :* && operands.size == 1 && !operands.first.kind_of?(DerivedUnit)
       @registry ||= {}
       @registry[operator] ||= {}
       @registry[operator][operands] ||= new(operator, operands)
