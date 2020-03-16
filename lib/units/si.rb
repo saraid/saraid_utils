@@ -23,13 +23,16 @@ module Units
       yocto: [ 'y', -24 ]
     }
 
-    def self.expand_prefixes(unit_class, type)
+    # TODO: Somehow do this without invoking .instance on everything?
+    # TODO: Somehow do just a subset of the prefixes.
+    def self.expand_prefixes(unit_class)
       str = unit_class.instance.to_s
+      unit_classname = unit_class.to_s.split('::').last
       classnames = PREFIXES.map do |prefix, (symbol, power)|
-        classname = :"#{prefix.capitalize}#{unit_class.to_s.split('::').last.downcase}"
+        classname = :"#{prefix.capitalize}#{unit_classname.downcase}"
         Units.const_set(
           classname,
-          Class.new(Unit.of(type)) do
+          Class.new(unit_class.superclass) do
             def to_s; @symbol; end
             def conversions; @conversions || {}; end
           end.tap do |cls|
@@ -39,6 +42,7 @@ module Units
         )
         [ classname, power ]
       end
+      classnames << [ unit_classname, 0 ]
 
       unit_class.class_eval { attr_reader :conversions }
       unit_class.instance.instance_variable_set(:@si_power, 0)

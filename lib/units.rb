@@ -8,13 +8,15 @@ require_relative 'units/si'
 
 require_relative 'units/of/angular_separation'
 require_relative 'units/of/length'
+require_relative 'units/of/mass'
 require_relative 'units/of/time'
 
 module Units
   def self.monkeypatch!
-    OfLength.monkeypatch!(into: Numeric)
-    OfTime.monkeypatch!(into: Numeric)
     OfAngularSeparation.monkeypatch!(into: Numeric)
+    OfLength.monkeypatch!(into: Numeric)
+    OfMass.monkeypatch!(into: Numeric)
+    OfTime.monkeypatch!(into: Numeric)
   end
 end
 

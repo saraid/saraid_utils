@@ -3,7 +3,7 @@ module Units
     def to_s; 'm'; end
   end
 
-  SI.expand_prefixes(Meter, :length)
+  SI.expand_prefixes(Meter)
 
   module OfLength
     extend Monkeypatchable
@@ -17,6 +17,7 @@ module Units
       Units::Quantity.new(self, Units::Kilometer.instance)
     end
     alias kilometer kilometers
+    alias km kilometers
 
     refine Numeric do
       include OfLength
