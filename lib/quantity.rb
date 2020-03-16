@@ -265,10 +265,6 @@ if __FILE__ == $0
   require 'irb'
   require 'irb/completion'
   Units.monkeypatch!
-  module Kernel
-    def Scalar(x)
-      Units::Scalar.new(x)
-    end
-  end
+  module Kernel def Scalar(x) Units::Scalar.new(x) end end
   IRB.start
 end
