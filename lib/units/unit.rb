@@ -15,6 +15,12 @@ module Units
         def type
           self.class.superclass
         end
+
+        def self.subclasses
+          Units.constants.map(&Units.method(:const_get)).select do |const|
+            Class === const && const < self
+          end
+        end
       end.tap do |cls|
         Units.const_set(cls.name.to_sym, cls)
       end
