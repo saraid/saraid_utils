@@ -20,6 +20,20 @@ module Units
   end
 end
 
+# Example refinement:
+#
+# module Foo
+#   using Units::OfLength
+#   def self.foo
+#     1.meter
+#   end
+# end
+#
+# irb> 1.meter
+# => NoMethodError (undefined method `meter' for 1:Integer)
+# irb> Foo.foo
+# => #<Units::Quantity:0x00007faac21ee7a8 @unit=#<Units::Meter:0x7faac283e018 :m>, @number=1>
+
 if __FILE__ == $0
   require 'irb'
   require 'irb/completion'
