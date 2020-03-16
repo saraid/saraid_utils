@@ -1,25 +1,35 @@
 module Units
   class Quantity
+    include Comparable
+
     def initialize(number, unit)
       @number, @unit = number, unit
-      if unit
-        unit.conversions.each do |to_unit, details|
-          singleton_class.class_eval do
-            details[:method_names].each do |method_name|
-              define_method(method_name) { convert(to_unit) }
-            end
+      initialize_conversions! if unit
+    end
+    attr_reader :number, :unit
+
+    private def initialize_conversions!
+      unit.conversions.each do |to_unit, details|
+        singleton_class.class_eval do
+          details[:method_names].each do |method_name|
+            define_method(method_name) { convert(to_unit) }
           end
         end
       end
     end
-    attr_reader :number, :unit
 
     def to_s
       unit.format(number)
     end
 
+    # This means that 2 > 1.meter will raise a TypeError.
+    def coerce(numeric)
+      [ Scalar.new(numeric), self ]
+    end
+
     def <=>(other)
-      raise ArgumentError, "cannot compare #{self} with #{other.inspect}" unless other.unit == unit
+      raise TypeError, "cannot compare Quantity with #{other.inspect}" unless other.is_a?(Quantity)
+      raise ArgumentError, "cannot compare #{inspect} with #{other.inspect}" unless other.unit == unit
       number <=> other.number
     end
 
@@ -33,7 +43,7 @@ module Units
       when Scalar then self.class.new(number + other.number, unit)
       when Quantity
         if unit != other.unit && !other.unit.can_convert_to?(unit)
-          raise ArgumentError, 'cannot add different quantities with units' 
+          raise ArgumentError, 'cannot add quantities with different units' 
         end
         self.class.new(number + other.number, unit)
       end
