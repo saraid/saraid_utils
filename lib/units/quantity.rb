@@ -43,7 +43,7 @@ module Units
       when Scalar then self.class.new(number + other.number, unit)
       when Quantity
         if unit != other.unit && !other.unit.can_convert_to?(unit)
-          raise ArgumentError, 'cannot add quantities with different units' 
+          raise ArgumentError, 'cannot add quantities with different units'
         end
         self.class.new(number + other.number, unit)
       end
