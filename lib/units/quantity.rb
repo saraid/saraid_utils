@@ -53,10 +53,21 @@ module Units
       self + -other
     end
 
+    # We presume that you're exponentiating the entire quantity,
+    # as opposed to merely the number.
+    #
+    # If you wish to exponentiate only the number, then build a new quantity.
+    # Example:
+    # length = 2.meters
+    # new_length = (length.number ** 2).meters
+    # new_length.to_s #=> "4m"
     def **(other)
       case other
       when Numeric then self ** Scalar.new(other)
-      when Scalar then self.class.new(number ** other.number, unit)
+      when Scalar
+        exponent = other.number.to_i
+        raise ArgumentError, 'cannot raise a unit to a non-integer' unless exponent == other.number
+        self.class.new(number ** exponent, DerivedUnit.for(:*, *exponent.times.map { unit }))
       when Quantity then raise ArgumentError, 'cannot raise by a non-dimensionless quantity; what are you even doing'
       end
     end
