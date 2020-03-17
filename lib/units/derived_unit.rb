@@ -35,6 +35,7 @@ module Units
 
     def initialize(factors)
       @factors = factors
+      #@by_unit = factors.reduce({}) { |memo, factor| memo[factor.unit] = factor.exponent }
     end
     attr_reader :factors
 
