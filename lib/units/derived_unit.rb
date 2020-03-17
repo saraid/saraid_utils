@@ -1,25 +1,50 @@
 module Units
   class DerivedUnit < Unit
-    def self.for(operator, *operands)
-      return operands.first if operands.size == 1
-      return operands.first if operator == :** && operands[1] == 1
-      @registry ||= {}
-      @registry[operator] ||= {}
-      @registry[operator][operands] ||= new(operator, operands)
+    class Factor
+      def self.flatten(factors)
+        factors
+          .map(&:flatten)
+          .flatten
+          .group_by(&:unit)
+          .transform_values { |ary| ary.map(&:exponent).reduce(0, :+) }
+          .map { |unit, exponent| Factor.new(unit, exponent) }
+      end
+
+      def initialize(unit, exponent)
+        @unit, @exponent = unit, exponent
+      end
+      attr_reader :unit, :exponent
+
+      def flatten
+        if unit.kind_of?(DerivedUnit) then unit.factors.map { |f| Factor.new(f.unit, f.exponent * exponent) }
+        else [self]
+        end
+      end
     end
 
-    def initialize(operator, operands)
-      @operator = operator
-      @operands = operands
+    def self.for(operator, left_operand, right_operand)
+      case operator
+      when :** then [Factor.new(left_operand, right_operand)]
+      when :*  then [Factor.new(left_operand, 1), Factor.new(right_operand, 1)]
+      when :/  then [Factor.new(left_operand, 1), Factor.new(right_operand, -1)]
+      end
+        .yield_self(&Factor.method(:flatten))
+        .tap { |factors| return factors.first.unit if factors.size == 1 && factors.first.exponent == 1 }
+        .yield_self(&method(:new))
     end
+
+    def initialize(factors)
+      @factors = factors
+    end
+    attr_reader :factors
 
     def to_s
-      case @operator
-      when :* then @operands.map(&:to_s).join('·')
-      when :/ then @operands.map(&:to_s).join('/')
-      when :** then @operands.map(&:to_s).join('^')
-      else raise "Whoops"
-      end
+      @factors.map do |factor|
+        case factor.exponent
+        when 1 then factor.unit
+        else "#{factor.unit}^#{factor.exponent}"
+        end
+      end.join('·')
     end
 
     def format(number)
