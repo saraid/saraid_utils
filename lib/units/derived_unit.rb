@@ -16,6 +16,7 @@ module Units
       case @operator
       when :* then @operands.map(&:to_s).join('·')
       when :/ then @operands.map(&:to_s).join('/')
+      when :** then @operands.map(&:to_s).join('^')
       else raise "Whoops"
       end
     end

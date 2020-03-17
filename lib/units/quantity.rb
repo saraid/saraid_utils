@@ -65,9 +65,8 @@ module Units
       case other
       when Numeric then self ** Scalar.new(other)
       when Scalar
-        exponent = other.number.to_i
-        raise ArgumentError, 'cannot raise a unit to a non-integer' unless exponent == other.number
-        self.class.new(number ** exponent, DerivedUnit.for(:*, *exponent.times.map { unit }))
+        exponent = other.number
+        self.class.new(number ** exponent, DerivedUnit.for(:**, unit, exponent))
       when Quantity then raise ArgumentError, 'cannot raise by a non-dimensionless quantity; what are you even doing'
       end
     end
