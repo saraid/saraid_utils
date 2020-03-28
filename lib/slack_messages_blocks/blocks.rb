@@ -19,14 +19,33 @@ module Slack
     module CompositionObjects
       class Text
         attr_reader :type, :text, :emoji, :verbatim
-        attr_writer :text
 
         PLAINTEXT = :plain_text
-        MARKDOWN = :mrkdwn
+        MRKDWN = :mrkdwn
+
+        def self.[](hash)
+          new.tap do |object|
+            object.type = hash.keys.find { |key| key == PLAINTEXT || key == MRKDWN }
+            raise ArgumentError, 'type must be `plain_text` or `mrkdwn`' unless object.type
+            object.text = hash[object.type]
+          end
+        end
+
+        def empty?
+          text&.empty?
+        end
 
         def type=(type)
           raise ArgumentError, 'type must be `plain_text` or `mrkdwn`' unless %i( plain_text mrkdwn ).include?(type.to_sym)
           @type = type.to_sym
+        end
+
+        NEWLINE = "\n"
+
+        def text=(text)
+          text = text.join(NEWLINE) if text.kind_of?(Array)
+          raise TypeError, 'text must be a string' unless text.respond_to?(:to_str)
+          @text = text.to_s
         end
 
         def to_h
@@ -48,7 +67,7 @@ module Slack
         end
 
         def to_h
-          @type ||= self.class.split('::').last.chop('Block').downcase
+          @type ||= self.class.name.split('::').last.chomp('Block').downcase
           { type: @type,
             block_id: @block_id
           }
@@ -59,6 +78,14 @@ module Slack
       class ContextBlock < Block
         attr_accessor :block_id
         attr_accessor :elements
+
+        def self.[](hash)
+          new.tap do |object|
+            hash[:elements].each(&object.elements.method(:<<))
+          end.tap do |object|
+            raise ArgumentError, 'invalid ContextBlock' unless object.valid?
+          end
+        end
 
         def initialize
           @elements = TypeRestrictedArray.new(BlockElements::Element, CompositionObjects::Text)
@@ -74,12 +101,34 @@ module Slack
           }).reject { |_, v| v.nil? || v.empty? }
         end
       end
-      class DividerBlock < Block; end
+      class DividerBlock < Block
+        def self.[](hash = nil)
+          new.tap do |object|
+            object.block_id = hash[:block_id] if hash&.key?(:block_id)
+          end
+        end
+
+        def to_h
+          super.reject { |_, v| v.nil? || v.empty? }
+        end
+      end
       class FileBlock < Block; end
       class ImageBlock < Block; end
       class InputBlock < Block; end
       class SectionBlock < Block
         attr_reader :text, :fields, :accessory
+
+        def self.[](hash)
+          new.tap do |object|
+            object.accessory = hash[:accessory] if hash.key?(:accessory) 
+            if hash.key?(:text) then object.text = hash[:text]
+            elsif hash.key?(:fields) then hash[:fields].each(&object.fields.method(:<<))
+            end
+            object.block_id = hash[:block_id] if hash.key?(:block_id)
+          end.tap do |object|
+            raise ArgumentError, 'invalid SectionBlock' unless object.valid?
+          end
+        end
 
         def initialize
           @fields = TypeRestrictedArray.new(CompositionObjects::Text)
@@ -103,10 +152,12 @@ module Slack
         end
 
         def to_h
-          raise RangeError, 'text in a SectionBlock may only have 3000 characters' unless text.text.size <= 3000
+          if text
+            raise RangeError, 'text in a SectionBlock may only have 3000 characters' unless text.text.size <= 3000
+          end
           super.merge({
             block_id: block_id,
-            text: text.to_h,
+            text: text&.to_h,
             fields: fields.map(&:to_h),
             accessory: accessory&.to_h
           }).reject { |_, v| v.nil? || v.empty? }
@@ -118,11 +169,23 @@ module Slack
       class Element
       end
     end
-  end
-end
 
-if __FILE__ == $0
-  require 'irb'
-  require 'irb/completion'
-  IRB.start
+    module ExecutionContext
+      SectionBlock = Blocks::SectionBlock
+      ContextBlock = Blocks::ContextBlock
+      DividerBlock = Blocks::DividerBlock
+      Text = CompositionObjects::Text
+
+      Bold = proc { |string| "*#{string}*" }
+      Italic = proc { |string| "_#{string}_" }
+      Strike = proc { |string| "~#{string}~" }
+      Code = proc { |string| "`#{string}`" }
+      Link = proc { |link, label = nil| (label.nil? || label.empty?) ? "<#{link}|#{label}>" : link }
+
+      def self.test(*data)
+        require 'json'
+        puts JSON.pretty_generate data.map(&:to_h)
+      end
+    end
+  end
 end
