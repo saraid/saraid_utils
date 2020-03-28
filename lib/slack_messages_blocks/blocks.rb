@@ -1,62 +1,59 @@
 module Slack
   module Messages
-    class Payload < Hash
-    end
+    module Blocks
+      class TypeRestrictedArray < Array
+        undef_method :concat, :[]= # Surely never necessary lol
 
-    class TypeRestrictedArray < Array
-      undef_method :concat, :[]= # Surely never necessary lol
+        def initialize(*classes)
+          @classes = classes
+        end
 
-      def initialize(*classes)
-        @classes = classes
+        def <<(item)
+          raise TypeError, "#{self.class} only accepts #{@classes}" unless @classes.any? { |cls| item.kind_of?(cls) }
+          super(item)
+        end
       end
 
-      def <<(item)
-        raise TypeError, "#{self.class} only accepts #{@classes}" unless @classes.any? { |cls| item.kind_of?(cls) }
-        super(item)
-      end
-    end
+      module CompositionObjects
+        class Text
+          attr_reader :type, :text, :emoji, :verbatim
 
-    module CompositionObjects
-      class Text
-        attr_reader :type, :text, :emoji, :verbatim
+          PLAINTEXT = :plain_text
+          MRKDWN = :mrkdwn
 
-        PLAINTEXT = :plain_text
-        MRKDWN = :mrkdwn
+          def self.[](hash)
+            new.tap do |object|
+              object.type = hash.keys.find { |key| key == PLAINTEXT || key == MRKDWN }
+              raise ArgumentError, 'type must be `plain_text` or `mrkdwn`' unless object.type
+              object.text = hash[object.type]
+            end
+          end
 
-        def self.[](hash)
-          new.tap do |object|
-            object.type = hash.keys.find { |key| key == PLAINTEXT || key == MRKDWN }
-            raise ArgumentError, 'type must be `plain_text` or `mrkdwn`' unless object.type
-            object.text = hash[object.type]
+          def empty?
+            text&.empty?
+          end
+
+          def type=(type)
+            raise ArgumentError, 'type must be `plain_text` or `mrkdwn`' unless %i( plain_text mrkdwn ).include?(type.to_sym)
+            @type = type.to_sym
+          end
+
+          NEWLINE = "\n"
+
+          def text=(text)
+            text = text.join(NEWLINE) if text.kind_of?(Array)
+            raise TypeError, 'text must be a string' unless text.respond_to?(:to_str)
+            @text = text.to_s
+          end
+
+          def to_h
+            { type: type,
+              text: text
+            }
           end
         end
-
-        def empty?
-          text&.empty?
-        end
-
-        def type=(type)
-          raise ArgumentError, 'type must be `plain_text` or `mrkdwn`' unless %i( plain_text mrkdwn ).include?(type.to_sym)
-          @type = type.to_sym
-        end
-
-        NEWLINE = "\n"
-
-        def text=(text)
-          text = text.join(NEWLINE) if text.kind_of?(Array)
-          raise TypeError, 'text must be a string' unless text.respond_to?(:to_str)
-          @text = text.to_s
-        end
-
-        def to_h
-          { type: type,
-            text: text
-          }
-        end
       end
-    end
 
-    module Blocks
       class Block
         attr_reader :block_id
 
@@ -74,117 +71,143 @@ module Slack
         end
       end
 
-      class ActionsBlock < Block; end
-      class ContextBlock < Block
-        attr_accessor :block_id
-        attr_accessor :elements
+      class Block
+        class ActionsBlock < Block; end
+        class ContextBlock < Block
+          attr_accessor :block_id
+          attr_accessor :elements
 
-        def self.[](hash)
-          new.tap do |object|
-            hash[:elements].each(&object.elements.method(:<<))
-          end.tap do |object|
-            raise ArgumentError, 'invalid ContextBlock' unless object.valid?
-          end
-        end
-
-        def initialize
-          @elements = TypeRestrictedArray.new(BlockElements::Element, CompositionObjects::Text)
-        end
-
-        def valid?
-          !@elements.empty?
-        end
-
-        def to_h
-          super.merge({
-            elements: elements.map(&:to_h)
-          }).reject { |_, v| v.nil? || v.empty? }
-        end
-      end
-      class DividerBlock < Block
-        def self.[](hash = nil)
-          new.tap do |object|
-            object.block_id = hash[:block_id] if hash&.key?(:block_id)
-          end
-        end
-
-        def to_h
-          super.reject { |_, v| v.nil? || v.empty? }
-        end
-      end
-      class FileBlock < Block; end
-      class ImageBlock < Block; end
-      class InputBlock < Block; end
-      class SectionBlock < Block
-        attr_reader :text, :fields, :accessory
-
-        def self.[](hash)
-          new.tap do |object|
-            object.accessory = hash[:accessory] if hash.key?(:accessory) 
-            if hash.key?(:text) then object.text = hash[:text]
-            elsif hash.key?(:fields) then hash[:fields].each(&object.fields.method(:<<))
+          def self.[](hash)
+            new.tap do |object|
+              hash[:elements].each(&object.elements.method(:<<))
+            end.tap do |object|
+              raise ArgumentError, 'invalid ContextBlock' unless object.valid?
             end
-            object.block_id = hash[:block_id] if hash.key?(:block_id)
-          end.tap do |object|
-            raise ArgumentError, 'invalid SectionBlock' unless object.valid?
+          end
+
+          def initialize
+            @elements = TypeRestrictedArray.new(Element, CompositionObjects::Text)
+          end
+
+          def valid?
+            !@elements.empty?
+          end
+
+          def to_h
+            super.merge({
+              elements: elements.map(&:to_h)
+            }).reject { |_, v| v.nil? || v.empty? }
           end
         end
+        class DividerBlock < Block
+          def self.[](hash = nil)
+            new.tap do |object|
+              object.block_id = hash[:block_id] if hash&.key?(:block_id)
+            end
+          end
 
-        def initialize
-          @fields = TypeRestrictedArray.new(CompositionObjects::Text)
-        end
-
-        # Either text or fields must exist and be non-empty.
-        def valid?
-          if @text.nil? || @text.empty? then !@fields.empty?
-          else !@text&.empty?
+          def to_h
+            super.reject { |_, v| v.nil? || v.empty? }
           end
         end
+        class FileBlock < Block; end
+        class ImageBlock < Block; end
+        class InputBlock < Block; end
+        class SectionBlock < Block
+          attr_reader :text, :fields, :accessory
 
-        def text=(obj)
-          raise TypeError, "text must be a #{CompositionObjects::Text}" unless obj.kind_of?(CompositionObjects::Text)
-          @text = obj
-        end
-
-        def accessory=(elem)
-          raise TypeError, 'accessory must be a block element' unless elem.kind_of?(BlockElements::Element)
-          @accessory = elem
-        end
-
-        def to_h
-          if text
-            raise RangeError, 'text in a SectionBlock may only have 3000 characters' unless text.text.size <= 3000
+          def self.[](hash)
+            new.tap do |object|
+              object.accessory = hash[:accessory] if hash.key?(:accessory) 
+              if hash.key?(:text) then object.text = hash[:text]
+              elsif hash.key?(:fields) then hash[:fields].each(&object.fields.method(:<<))
+              end
+              object.block_id = hash[:block_id] if hash.key?(:block_id)
+            end.tap do |object|
+              raise ArgumentError, 'invalid SectionBlock' unless object.valid?
+            end
           end
-          super.merge({
-            block_id: block_id,
-            text: text&.to_h,
-            fields: fields.map(&:to_h),
-            accessory: accessory&.to_h
-          }).reject { |_, v| v.nil? || v.empty? }
+
+          def initialize
+            @fields = TypeRestrictedArray.new(CompositionObjects::Text)
+          end
+
+          # Either text or fields must exist and be non-empty.
+          def valid?
+            if @text.nil? || @text.empty? then !@fields.empty?
+            else !@text&.empty?
+            end
+          end
+
+          def text=(obj)
+            raise TypeError, "text must be a #{CompositionObjects::Text}" unless obj.kind_of?(CompositionObjects::Text)
+            @text = obj
+          end
+
+          def accessory=(elem)
+            raise TypeError, 'accessory must be a block element' unless elem.kind_of?(Element)
+            @accessory = elem
+          end
+
+          def to_h
+            if text
+              raise RangeError, 'text in a SectionBlock may only have 3000 characters' unless text.text.size <= 3000
+            end
+            super.merge({
+              block_id: block_id,
+              text: text&.to_h,
+              fields: fields.map(&:to_h),
+              accessory: accessory&.to_h
+            }).reject { |_, v| v.nil? || v.empty? }
+          end
         end
       end
-    end
 
-    module BlockElements
       class Element
+        def to_h
+          @type ||= self.class.name.split('::').last.chomp('Element').downcase
+          { type: @type }
+        end
       end
-    end
+      class ImageElement < Element
+        attr_accessor :image_url, :alt_text
+        def to_h
+          super.merge({
+            image_url: image_url,
+            alt_text: alt_text
+          })
+        end
+      end
 
-    module ExecutionContext
-      SectionBlock = Blocks::SectionBlock
-      ContextBlock = Blocks::ContextBlock
-      DividerBlock = Blocks::DividerBlock
-      Text = CompositionObjects::Text
+      # TO USE:
+      # include Slack::Messages::Blocks::ExecutionContext
+      # data = [ SectionBlock[text: Text[mrkdwn: 'wheeee']] ]
+      # Slack::Messages::Blocks::ExecutionContext.test(data)
+      # => [
+      #      {
+      #        "type": "section",
+      #        "text": {
+      #          "type": "mrkdwn",
+      #          "text": "wheeee"
+      #        }
+      #      }
+      #    ]
+      module ExecutionContext
+        SectionBlock = Block::SectionBlock
+        ContextBlock = Block::ContextBlock
+        DividerBlock = Block::DividerBlock
+        Text = CompositionObjects::Text
 
-      Bold = proc { |string| "*#{string}*" }
-      Italic = proc { |string| "_#{string}_" }
-      Strike = proc { |string| "~#{string}~" }
-      Code = proc { |string| "`#{string}`" }
-      Link = proc { |link, label = nil| (label.nil? || label.empty?) ? "<#{link}|#{label}>" : link }
+        Bold = proc { |string| "*#{string}*" }
+        Italic = proc { |string| "_#{string}_" }
+        Strike = proc { |string| "~#{string}~" }
+        Code = proc { |string| "`#{string}`" }
+        Link = proc { |link, label = nil| (label.nil? || label.empty?) ? "<#{link}|#{label}>" : link }
 
-      def self.test(*data)
-        require 'json'
-        puts JSON.pretty_generate data.map(&:to_h)
+        def self.test(data)
+          require 'json'
+          puts JSON.pretty_generate data.map(&:to_h)
+        end
       end
     end
   end
