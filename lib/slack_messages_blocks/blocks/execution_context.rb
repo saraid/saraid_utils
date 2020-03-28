@@ -5,15 +5,18 @@ module Slack
       # include Slack::Messages::Blocks::ExecutionContext
       # data = [ SectionBlock[text: Text[mrkdwn: 'wheeee']] ]
       # Slack::Messages::Blocks::ExecutionContext.test(data)
-      # => [
-      #      {
-      #        "type": "section",
-      #        "text": {
-      #          "type": "mrkdwn",
-      #          "text": "wheeee"
+      # => {
+      #      "blocks": [
+      #        {
+      #          "type": "section",
+      #          "text": {
+      #            "type": "mrkdwn",
+      #            "text": "wheeee"
+      #          }
       #        }
-      #      }
-      #    ]
+      #      ]
+      #    }
+      # This can be copied and pasted into https://api.slack.com/tools/block-kit-builder
       module ExecutionContext
         SectionBlock = Block::SectionBlock
         ContextBlock = Block::ContextBlock
@@ -28,7 +31,7 @@ module Slack
 
         def self.test(data)
           require 'json'
-          puts JSON.pretty_generate data.map(&:to_h)
+          puts JSON.pretty_generate data.map(&:to_h).yield_self { |h| { blocks: h } }
         end
       end
     end
