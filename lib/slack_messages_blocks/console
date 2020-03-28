@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require_relative './blocks'
+
+include Slack::Messages::Blocks::ExecutionContext
+
+require 'irb'
+require 'irb/completion'
+IRB.start
