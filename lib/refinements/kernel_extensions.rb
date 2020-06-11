@@ -37,4 +37,16 @@ module Kernel
       end
     end
   end
+
+  def read_from_stdin_or_pbpaste(verbose: false)
+    require 'fcntl'
+
+    if $stdin.fcntl(Fcntl::F_GETFL, 0).zero?
+      $stderr.puts('Reading from STDIN') if verbose
+      $stdin.read
+    else
+      $stderr.puts('Reading from clipboard') if verbose
+      `pbpaste`
+    end
+  end
 end
